@@ -31,6 +31,7 @@ local function main()
     curses.curs_set(1)
 
     local cx, cy = 0, 0
+    local dirty = false
 
     local function redraw()
         stdscr:clear()
@@ -45,6 +46,7 @@ local function main()
         local line = buffer[cy + 1]
         buffer[cy + 1] = line:sub(1, cx) .. ch .. line:sub(cx + 1)
         cx = cx + 1
+        dirty = true
     end
 
     local function backspace()
@@ -52,6 +54,7 @@ local function main()
             local line = buffer[cy + 1]
             buffer[cy + 1] = line:sub(1, cx - 1) .. line:sub(cx + 1)
             cx = cx - 1
+            dirty = true
         elseif cy > 0 then
             local prev_line = buffer[cy]
             local line = buffer[cy + 1]
@@ -59,6 +62,7 @@ local function main()
             buffer[cy] = prev_line .. line
             table.remove(buffer, cy + 1)
             cy = cy - 1
+            dirty = true
         end
     end
 
@@ -69,6 +73,7 @@ local function main()
         table.insert(buffer, cy + 2, new_line)
         cy = cy + 1
         cx = 0
+        dirty = true
     end
 
     redraw()
@@ -78,26 +83,31 @@ local function main()
 
         if ch == 3 then
             curses.endwin()
-            print("Writing on '" .. filename .. "'...")
-            f = io.open(filename, "w")
-            if f then
-                for _, line in ipairs(buffer) do f:write(line .. "\n") end
-                f:close()
+            if dirty then
+                io.write("Write on '" .. filename .. "'? (y/n): ")
+                io.flush()
+                local ans = io.read()
+                if ans and ans:lower() == "y" then
+                    print("Writing on '" .. filename .. "'...")
+                    f = io.open(filename, "w")
+                    if f then
+                        for _, line in ipairs(buffer) do f:write(line .. "\n") end
+                        f:close()
+                    end
+                else print("Trashed.") end
             end
-
             break
+
         elseif ch == curses.KEY_BACKSPACE or ch == 127 or ch == 8 then backspace()
         elseif ch == 10 or ch == 13 then newline()
         elseif ch == curses.KEY_LEFT then
-            if cx > 0 then
-                cx = cx - 1
+            if cx > 0 then cx = cx - 1
             elseif cy > 0 then
                 cy = cy - 1
                 cx = #buffer[cy + 1]
             end
         elseif ch == curses.KEY_RIGHT then
-            if cx < #buffer[cy + 1] then
-                cx = cx + 1
+            if cx < #buffer[cy + 1] then cx = cx + 1
             elseif cy < #buffer - 1 then
                 cy = cy + 1
                 cx = 0
