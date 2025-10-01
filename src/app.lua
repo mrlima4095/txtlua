@@ -28,7 +28,7 @@ local function main(filename)
     curses.curs_set(1)
 
     local cx, cy = 0, 0
-    local dirty = false
+    local dirty, saved = false, true
     local scroll = 0
 
     local function redraw()
@@ -36,6 +36,8 @@ local function main(filename)
         local rows, cols = stdscr:getmaxyx()
 
         local filename_display = "[" .. filename .. "]"
+        if dirty then filename_display = filename_display .. "*" end
+
         local title_left = " TxTLua (" .. version .. ")"
         local filetype = "(text)"
 
@@ -55,6 +57,7 @@ local function main(filename)
         stdscr:move(cy - scroll + 1, cx)
         stdscr:refresh()
     end
+
 
     local function ensure_cursor_visible()
         local rows, cols = stdscr:getmaxyx()
@@ -104,22 +107,41 @@ local function main(filename)
         local ch = stdscr:getch()
 
         if ch == 3 then
-            curses.endwin()
-            if dirty then
-                io.write("Write on '" .. filename .. "'? (y/n): ")
-                io.flush()
-                local ans = io.read()
-                if ans and ans:lower() == "y" then
+            stdscr:clear()
+            stdscr:mvaddstr(0, 0, "Save? [Y] yes, [N] no, [B] back: ")
+            stdscr:refresh()
+
+            local answer = stdscr:getch()
+
+            if answer == string.byte("Y") or answer == string.byte("y") then
+                curses.endwin()
+                if dirty then
                     print("Writing on '" .. filename .. "'...")
                     f = io.open(filename, "w")
                     if f then
                         for _, line in ipairs(buffer) do f:write(line .. "\n") end
                         f:close()
                     end
-                else print("Trashed.") end
-            end
-            break
+                end
+                break
+            elseif answer == string.byte("N") or answer == string.byte("n") then
+                curses.endwin()
+                print("Trashed.")
+                break
+            elseif answer == string.byte("B") or answer == string.byte("b") then redraw()
+            else redraw() end
+        elseif ch == 19 then
+            f = io.open(filename, "w")
+            if f then
+                for _, line in ipairs(buffer) do f:write(line .. "\n") end
+                f:close()
+                dirty = false
+                redraw()
 
+                stdscr:mvaddstr(0, 0, " TxTLua (" .. version .. ") - Saved!")
+                stdscr:refresh()
+                curses.napms(500)
+            end
         elseif ch == curses.KEY_BACKSPACE or ch == 127 or ch == 8 then backspace()
         elseif ch == 10 or ch == 13 then newline()
         elseif ch == curses.KEY_LEFT then
