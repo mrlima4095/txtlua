@@ -8,9 +8,8 @@ local function main(filename)
     local f = io.open(filename, "r")
     if f then
         buffer = {}
-        for line in f:lines() do
-            table.insert(buffer, line)
-        end
+        for line in f:lines() do table.insert(buffer, line) end
+
         f:close()
         if #buffer == 0 then buffer = {""} end
     end
@@ -20,6 +19,7 @@ local function main(filename)
     curses.raw()
     if curses.noecho then curses.noecho()
     else curses.echo(false) end
+
     stdscr:keypad(true)
     if stdscr.meta then stdscr:meta(true) end
     curses.curs_set(1)
@@ -32,8 +32,8 @@ local function main(filename)
         stdscr:clear()
         local rows, cols = stdscr:getmaxyx()
 
-        local filename_display = "[" .. filename .. "]"
-        if dirty then filename_display = filename_display .. "*" end
+        local filename_display = "[ " .. filename .. " ]"
+        if dirty then filename_display = "[ " .. filename .. " * ]" end
         local title_left = " TxTLua (" .. version .. ")"
         local filetype = "(text)"
 
