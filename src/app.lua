@@ -112,7 +112,7 @@ local function main(filename)
                 if answer == string.byte("Y") or answer == string.byte("y") then
                     curses.endwin()
                     if dirty then
-                        print("Writing on '" .. filename .. "'...")
+                        print(filename .. " saved!")
                         f = io.open(filename, "w")
                         if f then
                             for _, line in ipairs(buffer) do f:write(line .. "\n") end
