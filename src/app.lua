@@ -46,11 +46,10 @@ local function main(filename)
         stdscr:mvaddstr(0, math.floor((cols - #filename_display) / 2), filename_display)
         stdscr:mvaddstr(0, cols - #filetype - 1, filetype)
 
-        for i = 2, rows do
-            local line_index = scroll + i - 1
+        for i = 1, rows - 1 do
+            local line_index = scroll + i
             if line_index <= #buffer then
-                local line = buffer[line_index]
-                stdscr:mvaddstr(i - 1, 0, line:sub(1, cols))
+                stdscr:mvaddstr(i, 0, buffer[line_index]:sub(1, cols))
             end
         end
 
