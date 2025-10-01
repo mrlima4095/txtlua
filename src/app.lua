@@ -8,9 +8,8 @@ local function main(filename)
     local f = io.open(filename, "r")
     if f then
         buffer = {}
-        for line in f:lines() do
-            table.insert(buffer, line)
-        end
+        for line in f:lines() do table.insert(buffer, line) end
+
         f:close()
         if #buffer == 0 then buffer = {""} end
     end
