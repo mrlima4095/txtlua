@@ -1,12 +1,9 @@
 #!/bin/lua
 
+local version = "1.0"
 local curses = require("curses")
 
-local function main()
-    if not arg[1] then print("Usage: lua " .. arg[0] .. " [filename]") os.exit(1) end
-
-    local filename = arg[1]
-
+local function main(filename)
     local buffer = {""}
     local f = io.open(filename, "r")
     if f then
@@ -32,18 +29,43 @@ local function main()
 
     local cx, cy = 0, 0
     local dirty = false
+    local scroll = 0
 
     local function redraw()
         stdscr:clear()
-        for i, line in ipairs(buffer) do
-            stdscr:mvaddstr(i - 1, 0, line)
+        local rows, cols = stdscr:getmaxyx()
+
+        local filename_display = "[" .. filename .. "]"
+        local title_left = " TxTLua (" .. version .. ")"
+        local filetype = "(text)"
+
+        stdscr:mvaddstr(0, 0, string.rep(" ", cols))
+        stdscr:mvaddstr(0, 0, title_left)
+        stdscr:mvaddstr(0, math.floor((cols - #filename_display) / 2), filename_display)
+        stdscr:mvaddstr(0, cols - #filetype - 1, filetype)
+
+        for i = 2, rows do
+            local line_index = scroll + i - 1
+            if line_index <= #buffer then
+                local line = buffer[line_index]
+                stdscr:mvaddstr(i - 1, 0, line:sub(1, cols))
+            end
         end
-        stdscr:move(cy, cx)
+
+        stdscr:move(cy - scroll + 1, cx)
         stdscr:refresh()
+    end
+
+    local function ensure_cursor_visible()
+        local rows, cols = stdscr:getmaxyx()
+
+        if cy < scroll then scroll = cy
+        elseif cy >= scroll + rows then scroll = cy - rows + 1 end
     end
 
     local function insert_char(ch)
         local line = buffer[cy + 1]
+
         buffer[cy + 1] = line:sub(1, cx) .. ch .. line:sub(cx + 1)
         cx = cx + 1
         dirty = true
@@ -120,8 +142,10 @@ local function main()
             end
         elseif ch >= 32 and ch <= 126 then insert_char(string.char(ch)) end
 
+        ensure_cursor_visible()
         redraw()
     end
 end
 
-main()
+if arg[1] then main(arg[1])
+else print("Usage: lua " .. arg[0] .. " [filename]") end
