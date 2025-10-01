@@ -166,3 +166,4 @@ end
 
 if arg[1] then main(arg[1])
 else print("Usage: lua " .. arg[0] .. " [filename]") end
+
