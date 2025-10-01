@@ -102,29 +102,23 @@ local function main()
         elseif ch == 10 or ch == 13 then newline()
         elseif ch == curses.KEY_LEFT then
             if cx > 0 then cx = cx - 1
-            elseif cy > 0 then
-                cy = cy - 1
-                cx = #buffer[cy + 1]
-            end
+            elseif cy > 0 then cy = cy - 1 cx = #buffer[cy + 1] end
         elseif ch == curses.KEY_RIGHT then
             if cx < #buffer[cy + 1] then cx = cx + 1
-            elseif cy < #buffer - 1 then
-                cy = cy + 1
-                cx = 0
-            end
+            elseif cy < #buffer - 1 then cy = cy + 1 cx = 0 end
         elseif ch == curses.KEY_UP then
             if cy > 0 then
                 cy = cy - 1
+
                 if cx > #buffer[cy + 1] then cx = #buffer[cy + 1] end
             end
         elseif ch == curses.KEY_DOWN then
             if cy < #buffer - 1 then
                 cy = cy + 1
+
                 if cx > #buffer[cy + 1] then cx = #buffer[cy + 1] end
             end
-        elseif ch >= 32 and ch <= 126 then
-            insert_char(string.char(ch))
-        end
+        elseif ch >= 32 and ch <= 126 then insert_char(string.char(ch)) end
 
         redraw()
     end
