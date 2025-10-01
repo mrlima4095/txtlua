@@ -107,29 +107,34 @@ local function main(filename)
         local ch = stdscr:getch()
 
         if ch == 3 then
-            stdscr:clear()
-            stdscr:mvaddstr(0, 0, "Save? [Y] yes, [N] no, [B] back: ")
-            stdscr:refresh()
+            if dirty then
+                stdscr:clear()
+                stdscr:mvaddstr(0, 0, "Save? [Y] yes, [N] no, [B] back: ")
+                stdscr:refresh()
 
-            local answer = stdscr:getch()
+                local answer = stdscr:getch()
 
-            if answer == string.byte("Y") or answer == string.byte("y") then
-                curses.endwin()
-                if dirty then
-                    print("Writing on '" .. filename .. "'...")
-                    f = io.open(filename, "w")
-                    if f then
-                        for _, line in ipairs(buffer) do f:write(line .. "\n") end
-                        f:close()
+                if answer == string.byte("Y") or answer == string.byte("y") then
+                    curses.endwin()
+                    if dirty then
+                        print("Writing on '" .. filename .. "'...")
+                        f = io.open(filename, "w")
+                        if f then
+                            for _, line in ipairs(buffer) do f:write(line .. "\n") end
+                            f:close()
+                        end
                     end
-                end
-                break
-            elseif answer == string.byte("N") or answer == string.byte("n") then
+
+                    break
+                elseif answer == string.byte("N") or answer == string.byte("n") then
+                    curses.endwin()
+                    print("Discard.")
+                    break
+                else redraw() end
+            else
                 curses.endwin()
-                print("Trashed.")
                 break
-            elseif answer == string.byte("B") or answer == string.byte("b") then redraw()
-            else redraw() end
+            end
         elseif ch == 19 then
             f = io.open(filename, "w")
             if f then
